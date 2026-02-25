@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Doctor Login - BloPredict</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+  <style>
+    body {
+      background: linear-gradient(135deg, #085878 0%, #1a6b8c 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin: 0;
+      padding: 20px;
+    }
+    .container {
+      width: 100%;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="login-card" data-aos="fade-up">
+      <i class="fas fa-user-md fa-4x" style="color:#085878; margin-bottom:20px;"></i>
+      <h2>Doctor Login</h2>
+      <div id="loginMessage" class="login-message"></div>
+      <form id="loginForm">
+        <div style="margin-bottom:15px;">
+          <label style="text-align:left;">Email</label>
+          <input type="email" id="email" placeholder="Enter email" required>
+        </div>
+        <div style="margin-bottom:20px;">
+          <label style="text-align:left;">Password</label>
+          <input type="password" id="password" placeholder="Enter password" required>
+        </div>
+        <button type="submit" class="btn-primary" style="width:100%;"><i class="fas fa-sign-in-alt"></i> Login</button>
+      </form>
+      <div class="back-link" style="margin-top:20px;">
+        <a href="index.html" style="color:#085878;"><i class="fas fa-arrow-left"></i> Back to Home</a>
+      </div>
+      <p style="margin-top:15px; font-size:0.9rem;">Default: dr.smith@example.com / secret123</p>
+    </div>
+  </div>
+
+  <script>
+    (function() {
+      const loginForm = document.getElementById('loginForm');
+      const emailInput = document.getElementById('email');
+      const passwordInput = document.getElementById('password');
+      const messageDiv = document.getElementById('loginMessage');
+
+      function showMessage(text, type) {
+        messageDiv.textContent = text;
+        messageDiv.className = `login-message ${type}`;
+        messageDiv.style.display = 'block';
+      }
+
+      if (typeof db === 'undefined') {
+        showMessage('❌ Firebase not initialized. Check firebase-config.js path.', 'error');
+      }
+
+      loginForm.addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const email = emailInput.value.trim();
+        const password = passwordInput.value.trim();
+        if (!email || !password) {
+          showMessage('Please enter both email and password.', 'error');
+          return;
+        }
+        if (typeof db === 'undefined') {
+          showMessage('❌ Firebase not initialized. Check configuration.', 'error');
+          return;
+        }
+        try {
+          const snapshot = await db.ref('doctors').orderByChild('email').equalTo(email).once('value');
+          if (snapshot.exists()) {
+            const doctors = snapshot.val();
+            const doctorKey = Object.keys(doctors)[0];
+            const doctorData = doctors[doctorKey];
+            if (doctorData.password === password) {
+              showMessage('✅ Login successful! Redirecting...', 'success');
+              localStorage.setItem('doctorLoggedIn', 'true');
+              localStorage.setItem('doctorName', doctorData.name);
+              localStorage.setItem('doctorEmail', doctorData.email);
+              setTimeout(() => {
+                window.location.href = 'dashboard.html';
+              }, 1500);
+            } else {
+              showMessage('❌ Invalid email or password.', 'error');
+            }
+          } else {
+            showMessage('❌ Invalid email or password.', 'error');
+          }
+        } catch (error) {
+          console.error('Login error:', error);
+          showMessage('❌ Database error: ' + error.message, 'error');
+        }
+      });
+    })();
+  </script>
+</body>
+</html>

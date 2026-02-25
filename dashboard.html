@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Doctor Dashboard - BloPredict</title>
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+  <!-- Navbar specific to dashboard -->
+  <nav class="navbar">
+    <div class="container nav-container">
+      <div class="logo">
+        <i class="fas fa-microscope"></i>
+        <span>BloPredict</span>
+      </div>
+      <div class="nav-links">
+        <a href="index.html">Home</a>
+        <a href="dashboard.html" class="active">Dashboard</a>
+        <button id="logoutBtn" class="nav-btn logout-btn">Logout</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <div class="container" style="max-width:1400px;">
+      <!-- Loading Overlay -->
+      <div id="dashboard-loading" style="display: none; text-align: center; padding: 40px;">
+        <div class="spinner"></div>
+        <p>Loading patient data...</p>
+      </div>
+
+      <div class="dashboard-header" data-aos="fade-down">
+        <div>
+          <h1><i class="fas fa-chart-line"></i> Doctor Dashboard</h1>
+          <p>Welcome, <span id="doctorName">Dr.</span></p>
+        </div>
+        <div style="display: flex; gap: 10px;">
+          <button id="refreshDataBtn" class="btn-secondary"><i class="fas fa-sync-alt"></i> Refresh</button>
+          <button id="exportDataBtn" class="btn-export"><i class="fas fa-download"></i> Export Data</button>
+        </div>
+      </div>
+
+      <!-- Filters -->
+      <div class="filters-container" data-aos="fade-up">
+        <input type="text" id="searchInput" placeholder="Search by name..." class="filter-input">
+        <select id="resultFilter" class="filter-select">
+          <option value="all">All results</option>
+          <option value="Benign">Benign</option>
+          <option value="Malignant">Malignant</option>
+          <option value="Inconclusive">Inconclusive</option>
+        </select>
+        <select id="tiradsFilter" class="filter-select">
+          <option value="all">All TIRADS</option>
+          <option value="1">TIRADS 1</option>
+          <option value="2">TIRADS 2</option>
+          <option value="3">TIRADS 3</option>
+          <option value="4">TIRADS 4</option>
+          <option value="5">TIRADS 5</option>
+        </select>
+        <select id="timeFilter" class="filter-select">
+          <option value="all">All time</option>
+          <option value="day">Last day</option>
+          <option value="week">Last week</option>
+          <option value="month">Last month</option>
+          <option value="custom">Custom range</option>
+        </select>
+        <div id="customDateRange" style="display:none;" class="date-range">
+          <input type="date" id="dateFrom">
+          <input type="date" id="dateTo">
+        </div>
+      </div>
+
+      <h2 style="margin:30px 0 15px;" data-aos="fade-right">
+        <i class="fas fa-folder-open"></i> Patient Records
+      </h2>
+
+      <!-- Patient cards (3 per row) -->
+      <div id="patientsGrid" class="patients-grid" data-aos="fade-up"></div>
+      <div id="noPatientsMessage" style="text-align: center; padding: 40px; display: none;">No patients match the filters.</div>
+    </div>
+  </main>
+
+  <!-- Decision Modal -->
+  <div id="decisionModal" class="modal">
+    <div class="modal-content">
+      <span class="close">&times;</span>
+      <h2 id="modalPatientName"></h2>
+      <p><strong>Phone:</strong> <span id="modalPhone"></span></p>
+      <hr>
+      <h3>Current Decision</h3>
+      <p><strong>Result:</strong> <span id="modalCurrentResult"></span></p>
+      <p><strong>TIRADS:</strong> <span id="modalCurrentTirads"></span></p>
+      <p><strong>Confidence:</strong> <span id="modalCurrentConfidence"></span>%</p>
+      <p><strong>Reason:</strong> <span id="modalCurrentReason"></span></p>
+      <hr>
+      <h3>Update Decision</h3>
+      <form id="updateForm">
+        <input type="hidden" id="decisionId">
+        <label>New Result</label>
+        <select id="newResult">
+          <option value="Benign">Benign</option>
+          <option value="Malignant">Malignant</option>
+          <option value="Inconclusive">Inconclusive</option>
+        </select>
+        <label>New Confidence (%)</label>
+        <input type="number" id="newConfidence" step="0.01" min="0" max="100">
+        <label>New Reason</label>
+        <textarea id="newReason" rows="3"></textarea>
+        <div style="display:flex; gap:10px; margin-top:20px;">
+          <button type="submit" class="btn-primary">Update</button>
+          <button type="button" id="sendWhatsAppBtn" class="whatsapp-btn"><i class="fab fa-whatsapp"></i> Send via WhatsApp</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="container footer-container">
+      <div class="footer-logo"><i class="fas fa-microscope"></i> BloPredict</div>
+      <div class="footer-links">
+        <a href="index.html">Home</a>
+        <a href="dashboard.html">Dashboard</a>
+        <a href="#">Privacy</a>
+        <a href="#">Terms</a>
+      </div>
+      <div class="footer-social">
+        <a href="#"><i class="fab fa-twitter"></i></a>
+        <a href="#"><i class="fab fa-linkedin"></i></a>
+        <a href="#"><i class="fab fa-github"></i></a>
+        <a href="#"><i class="fas fa-envelope"></i></a>
+      </div>
+      <div class="footer-copyright">&copy; 2025 BloPredict. All rights reserved.</div>
+    </div>
+  </footer>
+
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+  <script src="firebase-config.js"></script>
+  <script src="doctor.js"></script>
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script>AOS.init({ duration: 800, once: true });</script>
+</body>
+</html>
